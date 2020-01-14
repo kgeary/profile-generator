@@ -215,7 +215,7 @@ function generateHTML(data) {
               <div class="col">
                 <div class="card">
                   <h3>Github Stars</h3>
-                  <h5>TODO ${data.stars}</h5>
+                  <h5>${data.stars}</h5>
                 </div>
               </div>
               <div class="col">

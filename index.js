@@ -31,12 +31,15 @@ function writeToFile(fileName, data) {
 }
 
 // Get user info from github
-function getUser(name, color) {
+function getUser(name) {
     console.log("Name", name);
-    console.log("Color", color);
     const path = `/users/${name}`;
+
+    // Get the User Data
     let promise = getApiData(path);
-    return promise;
+    // Get the User Starred List
+    let promiseStarred = getApiData(path + "/starred");
+    return [promise, promiseStarred];
 }
 
 // Return a promise to get data from the github api
@@ -87,6 +90,7 @@ async function init() {
     // Generate a new HTML
     // Generate a new PDF
     let userColor;
+    let params = {};
 
     inquirer
         .prompt(questions)
@@ -95,9 +99,10 @@ async function init() {
             // store the color for later
             // get API data
             userColor = response.color;
-            return getUser(response.name, response.color);
+            return Promise.all(getUser(response.name));
         })
-        .then(function (response) {
+        .then(function (responses) {
+            let [response, responseStar] = responses;
             // Convert API response object into params object
             console.log("Response", response);
             params = {
@@ -112,7 +117,11 @@ async function init() {
                 followers: response.followers,
                 following: response.following,
                 color: userColor,
+                stars: responseStar.length,
             };
+
+            console.log("STAR RESP", responseStar);
+
             console.log("Get User Response Data");
             console.table(params);
             let html = generator.generateHTML(params);
