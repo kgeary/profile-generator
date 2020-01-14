@@ -52,28 +52,12 @@ function writeToFile(fileName, data) {
 // Get user info from github
 function getUser(userName) {
     console.log("GET USER");
-    console.log("uname=", userName);
-    const options = {
-        hostname: 'api.github.com',
-        path: `/users/${userName}`,
-        method: 'GET',
-        headers: {
-            'User-Agent': 'profile-generator',
-        }
-    };
+    console.log("userName", userName);
+    const path = `/users/${userName}`;
 
-    let result = "";
-    const req = https.request(options, function (res) {
-        console.log(`statusCode: ${res.statusCode}`);
-
-        // Data chunk received
-        res.on('data', function (d) {
-            result += d;
-        });
-
-        // All Data Received
-        res.on('end', function () {
-            let response = JSON.parse(result);
+    getDataPromise(path)
+        .then(function (response) {
+            // Convert response object into params object
             console.log("Response", response);
             let params = {
                 img: response.avatar_url,
@@ -82,16 +66,56 @@ function getUser(userName) {
                 publicRepos: response.public_repos,
                 followers: response.followers,
                 following: response.following,
-            }
+            };
+
             allDataReceived(params);
+        })
+        .catch(function (error) {
+            console.log("getUser Error", error);
         });
-    })
+}
 
-    req.on('error', function (error) {
-        console.error(error);
-    })
+// Return a promise to get data from the github api
+// returns a response object
+function getDataPromise(path) {
+    /* Request option parameters */
+    const host = 'api.github.com';
 
-    req.end();
+    const options = {
+        hostname: host,
+        path: path,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'profile-generator',
+        }
+    };
+    // Return a promise to get the data
+    return new Promise(function (resolve, reject) {
+        let result = "";
+        const req = https.request(options, function (res) {
+            console.log(`statusCode: ${res.statusCode}`);
+
+            // Data chunk received handler
+            res.on('data', function (d) {
+                result += d;
+            });
+
+            // All Data Received - Call resolve to notify caller
+            res.on('end', function () {
+                // Parse the result string, 
+                //convert it to an object 
+                // and pass it to the resolve handler
+                resolve(JSON.parse(result));
+            });
+        })
+
+        req.on('error', function (error) {
+            // Pass the error to the reject handler
+            reject(error);
+        })
+
+        req.end();
+    });
 }
 
 // All Github data received and packaged 
