@@ -1,41 +1,22 @@
+var inquirer = require('inquirer');
+var generator = require('./generateHTML.js');
 var fs = require('fs');
 var https = require('https');
-const readline = require('readline');
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
 
 // Questions to prompt the user with
 const questions = [
-    { q: "What github profile do you want to get" },
-    { q: "What color background do you want to use" }
+    {
+        type: "input",
+        message: "What github profile do you want to get",
+        name: "name",
+    },
+    {
+        type: "list",
+        message: "What color background do you want to use",
+        choices: Object.keys(generator.colors),
+        name: "color",
+    },
 ];
-
-// Print a Question and Get the answer via standard input
-async function getInputPromise(question) {
-    // Print the Question and get the answer
-    return new Promise(function (resolve) {
-        rl.question(question.q + "? ", async function (answer) {
-            question.a = answer;
-            console.log("ANSWER", question.a);
-            await resolve();
-        });
-    });
-}
-
-// Prompt the user with a series of questions and store the results
-async function promptUser() {
-    for (let index = 0; index < questions.length; index++) {
-        try {
-            await getInputPromise(questions[index]);
-        }
-        catch (err) {
-            console.log("EXCEPTION", err);
-        }
-    }
-    return Promise.resolve();
-}
 
 // Write data to a file
 function writeToFile(fileName, data) {
@@ -50,44 +31,24 @@ function writeToFile(fileName, data) {
 }
 
 // Get user info from github
-function getUser(userName) {
-    console.log("GET USER");
-    console.log("userName", userName);
-    const path = `/users/${userName}`;
-
-    getDataPromise(path)
-        .then(function (response) {
-            // Convert response object into params object
-            console.log("Response", response);
-            let params = {
-                img: response.avatar_url,
-                location: response.location,
-                url: response.url,
-                publicRepos: response.public_repos,
-                followers: response.followers,
-                following: response.following,
-            };
-
-            allDataReceived(params);
-        })
-        .catch(function (error) {
-            console.log("getUser Error", error);
-        });
+function getUser(name, color) {
+    console.log("Name", name);
+    console.log("Color", color);
+    const path = `/users/${name}`;
+    let promise = getApiData(path);
+    return promise;
 }
 
 // Return a promise to get data from the github api
 // returns a response object
-function getDataPromise(path) {
+function getApiData(path) {
     /* Request option parameters */
     const host = 'api.github.com';
-
     const options = {
         hostname: host,
         path: path,
         method: 'GET',
-        headers: {
-            'User-Agent': 'profile-generator',
-        }
+        headers: { 'User-Agent': 'profile-generator' }
     };
     // Return a promise to get the data
     return new Promise(function (resolve, reject) {
@@ -118,12 +79,6 @@ function getDataPromise(path) {
     });
 }
 
-// All Github data received and packaged 
-function allDataReceived(params) {
-    console.log("All Data Received");
-    console.table(params);
-}
-
 // Initialize and run the script
 async function init() {
     // Prompt user with questions
@@ -131,8 +86,42 @@ async function init() {
     // Scrape the profile for data needed
     // Generate a new HTML
     // Generate a new PDF
-    await promptUser();
-    getUser(questions[0].a);
+    let userColor;
+
+    inquirer
+        .prompt(questions)
+        .then(function (response) {
+            // User Input Responses received
+            // store the color for later
+            // get API data
+            userColor = response.color;
+            return getUser(response.name, response.color);
+        })
+        .then(function (response) {
+            // Convert API response object into params object
+            console.log("Response", response);
+            params = {
+                name: response.name,
+                login: response.login,
+                img: response.avatar_url,
+                bio: response.bio,
+                blog: response.blog,
+                location: response.location,
+                url: response.html_url,
+                publicRepos: response.public_repos,
+                followers: response.followers,
+                following: response.following,
+                color: userColor,
+            };
+            console.log("Get User Response Data");
+            console.table(params);
+            let html = generator.generateHTML(params);
+            writeToFile("temp.html", html);
+            console.log(html);
+        })
+        .catch(function (error) {
+            console.log("CATCH-ERROR:", error);
+        });
 }
 
 init();
