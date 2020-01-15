@@ -205,6 +205,11 @@ function generateHTML(data) {
             body {
                 zoom: .75;
             }
+            
+            .card {
+                display: inline-block;
+                width: 500px;
+            }
         }
     </style>
 </head>
