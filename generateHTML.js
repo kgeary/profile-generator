@@ -218,6 +218,7 @@ function generateHTML(data) {
     <div class="wrapper">
         <div class="photo-header">
             <img src="${data.img}" alt="Avatar">
+            <h6>${data.login}</h6>
             <h1>Hi!</h1>
             <h1>My name is ${data.name}</h1>
             <h3>${data.bio}</h3>
