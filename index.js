@@ -7,6 +7,7 @@ const generator = require('./generateHTML.js');
 // Debug Flags
 const debug = false;
 const tmpFiles = debug || false;
+const DEFAULT_NAME = "No Name Provided";
 
 // Questions to prompt the user with
 const questions = [
@@ -57,7 +58,7 @@ function formatData(data) {
   // Create a maps link if location was specified 
   if (data.location) {
     data.map = "https://www.google.com/maps/place/" +
-      data.location.replace(" ", "+");
+      data.location.replace(/\s/g, "+");
   } else {
     data.location = "No Location Provided";
     data.map = "#";
@@ -65,7 +66,7 @@ function formatData(data) {
 
   // Set a default value for name if null
   if (!data.name) {
-    data.name = "No Name Provided";
+    data.name = DEFAULT_NAME;
   }
   // Set a default value for bio if null
   if (!data.bio) {
@@ -140,7 +141,10 @@ function init() {
       const html = generator.generateHTML(data);
 
       // Get the filename to use for the output (temp when debugging else user_name)
-      const fname = tmpFiles ? 'temp' : `${data.name.replace(' ', '_')}`;
+      if (data.name === DEFAULT_NAME) {
+        data.name = data.login;
+      }
+      const fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
 
       // Write the html data to a Text File
       if (debug) { writeToFile(`${fname}.html`, html); }
