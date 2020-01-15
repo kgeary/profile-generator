@@ -22,29 +22,37 @@ const questions = [
 
 // Write text data to a file
 function writeToFile(fileName, data) {
-    fs.writeFile(fileName, data, 'utf8', function (err) {
-        if (err) {
-            console.log("Error: " + err);
-            throw err;
-        } else {
-            // File written
-        }
+    return new Promise(function (resolve, reject) {
+        fs.writeFile(fileName, data, 'utf8', function (err) {
+            if (err) {
+                if (debug) { console.log("Error: " + err); }
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
     });
 }
 
 // Write HTML to a PDF
 function writeToPdf(fileName, html) {
-    var options = { format: 'Letter' };
-    pdf.create(html, options).toFile(fileName, function (err, res) {
-        if (err) return console.log(err);
-        console.log(res);
+    let options = { format: 'Letter' };
+    return new Promise(function (resolve, reject) {
+        pdf.create(html, options).toFile(fileName, function (err, res) {
+            if (err) {
+                if (debug) { console.log(err); }
+                reject(err);
+            } else {
+                resolve(res);
+            }
+        });
     });
 }
 
-// Get user info from github
+// Get All User info needed from github
 // Returns an array of promises
-// [0] - User Info
-// [1] - Star Info
+// Promise [0] - User Info
+// Promise [1] - Star Info
 function getUser(name) {
     console.log("Name", name);
     const path = `/users/${name}`;
@@ -118,7 +126,7 @@ function init() {
             let [response, responseStar] = responses;
             // Convert API response object into params object
             if (debug) {
-                console.log("Response", response);
+                console.log("User Response", response);
             }
             params = {
                 name: response.name,
@@ -134,8 +142,12 @@ function init() {
                 color: userColor,
                 stars: responseStar.length,
             };
+            if (response.location) {
+                params.htmlLocation = response.location.replace(" ", "+");
+            }
+
             if (debug) {
-                console.log("STAR RESPONSE", responseStar);
+                console.log("Star Response", responseStar);
                 console.log("table = params");
                 console.table(params);
             }
@@ -143,7 +155,9 @@ function init() {
         }).then(function (response) {
             let html = response;
             writeToFile("temp.html", html);
-            writeToPdf("temp.pdf", html);
+            return writeToPdf("temp.pdf", html);
+        }).then(function() {
+            console.log("Success");
         })
         .catch(function (error) {
             console.log("CATCH-ERROR:", error);

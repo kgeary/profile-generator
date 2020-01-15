@@ -75,6 +75,7 @@ function generateHTML(data) {
             background-color: #E9EDEE;
             height: auto;
             padding-top: 30px;
+            padding-bottom: 5px;
         }
 
         h1,
@@ -118,9 +119,7 @@ function generateHTML(data) {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-
             background-color: ${colors[data.color].headerBackground};
-
             color: ${colors[data.color].headerColor};
             padding: 10px;
             width: 95%;
@@ -133,7 +132,6 @@ function generateHTML(data) {
             border-radius: 50%;
             object-fit: cover;
             margin-top: -75px;
-
             border: 6px solid ${colors[data.color].photoBorderColor};
             box-shadow: rgba(0, 0, 0, 0.3) 4px 1px 20px 4px;
             background-color: white;
@@ -221,7 +219,7 @@ function generateHTML(data) {
             <h5>${data.bio}</h5>
             <div class="links-nav">
                 <a class="nav-link" target="_blank"
-                    href="https://www.google.com/maps/place/${data.location.replace(" ", " +")}/"> <i
+                    href="https://www.google.com/maps/place/${data.htmlLocation}/"> <i
                     class="fas fa-location-arrow"></i>
                     Location: ${data.location}
                 </a>
@@ -229,7 +227,7 @@ function generateHTML(data) {
                     <i class="fab fa-github"></i>
                     Github
                 </a>
-                <a class="nav-link" target="_blank" href="${data.blog || " #"}">
+                <a class="nav-link" target="_blank" href="${data.blog}">
                     <i class="fas fa-rss-square"></i>
                     Blog
                 </a>
