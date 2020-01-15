@@ -105,3 +105,6 @@ dist
 
 # A temporary html file for testing
 temp.html
+
+# A temporary pdf file for testing
+temp.pdf

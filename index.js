@@ -1,7 +1,9 @@
-var inquirer = require('inquirer');
-var generator = require('./generateHTML.js');
-var fs = require('fs');
-var https = require('https');
+const inquirer = require('inquirer');
+const pdf = require('html-pdf');
+const fs = require('fs');
+const https = require('https');
+const generator = require('./generateHTML.js');
+const debug = false
 
 // Questions to prompt the user with
 const questions = [
@@ -18,7 +20,7 @@ const questions = [
     },
 ];
 
-// Write data to a file
+// Write text data to a file
 function writeToFile(fileName, data) {
     fs.writeFile(fileName, data, 'utf8', function (err) {
         if (err) {
@@ -30,7 +32,19 @@ function writeToFile(fileName, data) {
     });
 }
 
+// Write HTML to a PDF
+function writeToPdf(fileName, html) {
+    var options = { format: 'Letter' };
+    pdf.create(html, options).toFile(fileName, function (err, res) {
+        if (err) return console.log(err);
+        console.log(res);
+    });
+}
+
 // Get user info from github
+// Returns an array of promises
+// [0] - User Info
+// [1] - Star Info
 function getUser(name) {
     console.log("Name", name);
     const path = `/users/${name}`;
@@ -38,8 +52,8 @@ function getUser(name) {
     // Get the User Data
     let promise = getApiData(path);
     // Get the User Starred List
-    let promiseStarred = getApiData(path + "/starred");
-    return [promise, promiseStarred];
+    let promiseStar = getApiData(path + "/starred");
+    return Promise.all([promise, promiseStar]);
 }
 
 // Return a promise to get data from the github api
@@ -53,11 +67,13 @@ function getApiData(path) {
         method: 'GET',
         headers: { 'User-Agent': 'profile-generator' }
     };
-    // Return a promise to get the data
+    // Return a promise
     return new Promise(function (resolve, reject) {
         let result = "";
         const req = https.request(options, function (res) {
-            console.log(`statusCode: ${res.statusCode}`);
+            if (debug) {
+                console.log(`statusCode: ${res.statusCode}`);
+            }
 
             // Data chunk received handler
             res.on('data', function (d) {
@@ -66,9 +82,8 @@ function getApiData(path) {
 
             // All Data Received - Call resolve to notify caller
             res.on('end', function () {
-                // Parse the result string, 
-                //convert it to an object 
-                // and pass it to the resolve handler
+                // Parse the result to an object 
+                // and pass it to resolve()
                 resolve(JSON.parse(result));
             });
         })
@@ -83,10 +98,8 @@ function getApiData(path) {
 }
 
 // Initialize and run the script
-async function init() {
+function init() {
     // Prompt user with questions
-    // Get the user profile
-    // Scrape the profile for data needed
     // Generate a new HTML
     // Generate a new PDF
     let userColor;
@@ -99,12 +112,14 @@ async function init() {
             // store the color for later
             // get API data
             userColor = response.color;
-            return Promise.all(getUser(response.name));
+            return getUser(response.name);
         })
         .then(function (responses) {
             let [response, responseStar] = responses;
             // Convert API response object into params object
-            console.log("Response", response);
+            if (debug) {
+                console.log("Response", response);
+            }
             params = {
                 name: response.name,
                 login: response.login,
@@ -119,14 +134,16 @@ async function init() {
                 color: userColor,
                 stars: responseStar.length,
             };
-
-            console.log("STAR RESP", responseStar);
-
-            console.log("Get User Response Data");
-            console.table(params);
-            let html = generator.generateHTML(params);
+            if (debug) {
+                console.log("STAR RESPONSE", responseStar);
+                console.log("table = params");
+                console.table(params);
+            }
+            return generator.generateHTML(params);
+        }).then(function (response) {
+            let html = response;
             writeToFile("temp.html", html);
-            console.log(html);
+            writeToPdf("temp.pdf", html);
         })
         .catch(function (error) {
             console.log("CATCH-ERROR:", error);
