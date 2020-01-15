@@ -153,9 +153,10 @@ function init() {
             }
             return generator.generateHTML(params);
         }).then(function (response) {
+            const fname = `${params.name.replace(' ', '_')}`;
             let html = response;
-            writeToFile("temp.html", html);
-            return writeToPdf("temp.pdf", html);
+            writeToFile(`${fname}.html`, html);
+            return writeToPdf(`${fname}.pdf`, html);
         }).then(function() {
             console.log("Success");
         })
