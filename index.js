@@ -1,11 +1,11 @@
 const inquirer = require('inquirer');
 const pdf = require('html-pdf');
 const fs = require('fs');
-const https = require('https');
+const axios = require('axios');
 const generator = require('./generateHTML.js');
 
 // Debug Flags
-const debug = true;
+const debug = false;
 const tempFiles = true;
 
 // Questions to prompt the user with
@@ -60,11 +60,12 @@ function getUser(name) {
     console.log("Name", name);
     const path = `/users/${name}`;
 
-    // Get the User Data
-    let promise = getApiData(path);
-    // Get the User Starred List
-    let promiseStar = getApiData(path + "/starred");
-    return Promise.all([promise, promiseStar]);
+    // Get the User Data and the User Starred List
+    return Promise.all(
+        [
+            getApiData(path),
+            getApiData(path + "/starred"),
+        ]);
 }
 
 // Return a promise to get data from the github api
@@ -72,40 +73,7 @@ function getUser(name) {
 function getApiData(path) {
     /* Request option parameters */
     const host = 'api.github.com';
-    const options = {
-        hostname: host,
-        path: path,
-        method: 'GET',
-        headers: { 'User-Agent': 'profile-generator' }
-    };
-    // Return a promise
-    return new Promise(function (resolve, reject) {
-        let result = "";
-        const req = https.request(options, function (res) {
-            if (debug) {
-                console.log(`statusCode: ${res.statusCode}`);
-            }
-
-            // Data chunk received handler
-            res.on('data', function (d) {
-                result += d;
-            });
-
-            // All Data Received - Call resolve to notify caller
-            res.on('end', function () {
-                // Parse the result to an object 
-                // and pass it to resolve()
-                resolve(JSON.parse(result));
-            });
-        })
-
-        req.on('error', function (error) {
-            // Pass the error to the reject handler
-            reject(error);
-        })
-
-        req.end();
-    });
+    return axios.get(`https://${host}${path}`);
 }
 
 // Initialize and run the script
@@ -126,7 +94,10 @@ function init() {
             return getUser(response.name);
         })
         .then(function (responses) {
-            let [rspUser, rspStar] = responses;
+            
+            // Set the response objects to the data of the responses
+            const [rspUser, rspStar] = responses.map(x => x.data);
+
             // Convert API response object into params object
             if (debug) {
                 console.log("User Api Response", rspUser);
@@ -159,16 +130,20 @@ function init() {
                 console.table(data);
             }
             return generator.generateHTML(data);
-        }).then(function (response) {
-            const fname = (debug || tempFiles) ? 'temp' : `${data.name.replace(' ', '_')}`;
-            let html = response;
+        }).then(function (html) {
+            // Write the HTML to a text file and to a PDF
+            const fname = (debug || tempFiles) ? 'temp' : 
+                `${data.name.replace(' ', '_')}`;
             writeToFile(`${fname}.html`, html);
             return writeToPdf(`${fname}.pdf`, html);
         }).then(function () {
             console.log("Success");
         })
         .catch(function (error) {
-            console.log("CATCH-ERROR:", error);
+            console.log("CATCH-ERROR:", error.message);
+            if (debug) {
+                console.log(error);
+            }   
         });
 }
 
