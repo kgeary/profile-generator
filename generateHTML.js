@@ -124,6 +124,7 @@ function generateHTML(data) {
             padding: 10px;
             width: 95%;
             border-radius: 6px;
+            text-align: center;
         }
 
         .photo-header img {
@@ -138,7 +139,7 @@ function generateHTML(data) {
         }
 
         .photo-header h1,
-        .photo-header h2 {
+        .photo-header h3 {
             width: 100%;
             text-align: center;
         }
@@ -183,9 +184,7 @@ function generateHTML(data) {
         .card {
             padding: 20px;
             border-radius: 6px;
-
             background-color: ${colors[data.color].headerBackground};
-
             color: ${colors[data.color].headerColor};
             margin: 20px;
         }
@@ -216,63 +215,53 @@ function generateHTML(data) {
             <img src="${data.img}" alt="Avatar">
             <h1>Hi!</h1>
             <h1>My name is ${data.name}</h1>
-            <h5>${data.bio}</h5>
+            <h3>${data.bio}</h3>
             <div class="links-nav">
-                <a class="nav-link" target="_blank"
-                    href="https://www.google.com/maps/place/${data.htmlLocation}/"> <i
-                    class="fas fa-location-arrow"></i>
-                    Location: ${data.location}
+                <a class="nav-link" target="_blank" href="${data.map}"> 
+                    <i class="fas fa-location-arrow"></i>
+                    <span>${data.location}</span>
                 </a>
                 <a class="nav-link" target="_blank" href="${data.url}">
                     <i class="fab fa-github"></i>
-                    Github
+                    <span>Github</span>
                 </a>
                 <a class="nav-link" target="_blank" href="${data.blog}">
                     <i class="fas fa-rss-square"></i>
-                    Blog
+                    <span>Blog</span>
                 </a>
             </div>
         </div>
-        <div class="container">
-            <main>
+        <main>
+            <div class="container">
                 <div class="row">
                     <div class="col">
                         <h3>I build things and teach people to code</h3>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col">
-                        <div class="card">
-                            <h3>Public Repositories</h3>
-                            <h5>${data.publicRepos}</h5>
-                        </div>
+                    <div class="col card">
+                        <h3>Public Repositories</h3>
+                        <h5>${data.publicRepos}</h5>
                     </div>
-                    <div class="col">
-                        <div class="card">
-                            <h3>Followers</h3>
-                            <h5>${data.followers}</h5>
-                        </div>
+                    <div class="col card">
+                        <h3>Followers</h3>
+                        <h5>${data.followers}</h5>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col">
-                        <div class="card">
-                            <h3>Github Stars</h3>
-                            <h5>${data.stars}</h5>
-                        </div>
+                    <div class="col card">
+                        <h3>Github Stars</h3>
+                        <h5>${data.stars}</h5>
                     </div>
-                    <div class="col">
-                        <div class="card">
-                            <h3>Following</h3>
-                            <h5>${data.following}</h5>
-                        </div>
+                    <div class="col card">
+                        <h3>Following</h3>
+                        <h5>${data.following}</h5>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 </body>
-
 </html>`;
 }
 module.exports = {

@@ -3,7 +3,10 @@ const pdf = require('html-pdf');
 const fs = require('fs');
 const https = require('https');
 const generator = require('./generateHTML.js');
-const debug = false
+
+// Debug Flags
+const debug = true;
+const tempFiles = true;
 
 // Questions to prompt the user with
 const questions = [
@@ -111,53 +114,57 @@ function init() {
     // Generate a new HTML
     // Generate a new PDF
     let userColor;
-    let params = {};
+    let data = {};
 
     inquirer
         .prompt(questions)
         .then(function (response) {
             // User Input Responses received
             // store the color for later
-            // get API data
+            // get API data returns array of promises
             userColor = response.color;
             return getUser(response.name);
         })
         .then(function (responses) {
-            let [response, responseStar] = responses;
+            let [rspUser, rspStar] = responses;
             // Convert API response object into params object
             if (debug) {
-                console.log("User Response", response);
+                console.log("User Api Response", rspUser);
             }
-            params = {
-                name: response.name,
-                login: response.login,
-                img: response.avatar_url,
-                bio: response.bio,
-                blog: response.blog,
-                location: response.location,
-                url: response.html_url,
-                publicRepos: response.public_repos,
-                followers: response.followers,
-                following: response.following,
+
+            // Save the user data to a variable
+            data = {
+                name: rspUser.name,
+                login: rspUser.login,
+                img: rspUser.avatar_url,
+                bio: rspUser.bio,
+                blog: rspUser.blog,
+                location: rspUser.location,
+                url: rspUser.html_url,
+                publicRepos: rspUser.public_repos,
+                followers: rspUser.followers,
+                following: rspUser.following,
                 color: userColor,
-                stars: responseStar.length,
+                stars: rspStar.length,
             };
-            if (response.location) {
-                params.htmlLocation = response.location.replace(" ", "+");
+
+            if (rspUser.location) {
+                data.map = "https://www.google.com/maps/place/" +
+                    rspUser.location.replace(" ", "+");
             }
 
             if (debug) {
-                console.log("Star Response", responseStar);
+                console.log("Star Api Response", rspStar);
                 console.log("table = params");
-                console.table(params);
+                console.table(data);
             }
-            return generator.generateHTML(params);
+            return generator.generateHTML(data);
         }).then(function (response) {
-            const fname = `${params.name.replace(' ', '_')}`;
+            const fname = (debug || tempFiles) ? 'temp' : `${data.name.replace(' ', '_')}`;
             let html = response;
             writeToFile(`${fname}.html`, html);
             return writeToPdf(`${fname}.pdf`, html);
-        }).then(function() {
+        }).then(function () {
             console.log("Success");
         })
         .catch(function (error) {
@@ -165,4 +172,9 @@ function init() {
         });
 }
 
+if (debug) {
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.log("Debug Mode Active");
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+}
 init();
