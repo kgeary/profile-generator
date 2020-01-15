@@ -10,7 +10,6 @@ Generates a short profile including:
 * \# of People they are following
 * Star Count
 
-
 ## Purpose
 This script will generate a PDF user profile based off a github account
 
@@ -24,6 +23,8 @@ From a terminal:
 ```
 node index.js
 ```
+## Output
+<img src="screenshot.png" width="500px" height="647px">
 
 ## Repository
 [profile-generator @ github](https://github.com/kgeary/profile-generator/)

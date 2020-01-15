@@ -76,6 +76,20 @@ function getApiData(path) {
     return axios.get(`https://${host}${path}`);
 }
 
+// Format input data like we need it
+function formatData(data) {
+    if (data.location) {
+        data.map = "https://www.google.com/maps/place/" +
+            data.location.replace(" ", "+");
+    } else {
+        data.map = "#";
+    }
+
+    if (!data.blog) { 
+        data.blog = "#"; 
+    }
+}
+
 // Initialize and run the script
 function init() {
     // Prompt user with questions
@@ -119,11 +133,9 @@ function init() {
                 stars: rspStar.length,
             };
 
-            if (rspUser.location) {
-                data.map = "https://www.google.com/maps/place/" +
-                    rspUser.location.replace(" ", "+");
-            }
-
+            // Fix the data up before applying it to html
+            formatData(data);
+ 
             if (debug) {
                 console.log("Star Api Response", rspStar);
                 console.log("table = params");
@@ -134,8 +146,11 @@ function init() {
             // Write the HTML to a text file and to a PDF
             const fname = (debug || tempFiles) ? 'temp' : 
                 `${data.name.replace(' ', '_')}`;
-            writeToFile(`${fname}.html`, html);
-            return writeToPdf(`${fname}.pdf`, html);
+
+            if (debug) {
+                writeToFile(`${fname}.html`, html);
+            }
+            writeToPdf(`${fname}.pdf`, html);
         }).then(function () {
             console.log("Success");
         })
