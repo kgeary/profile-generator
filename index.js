@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const generator = require('./generateHTML.js');
+const TMP_HTML = 'tmp.html';
 
 // Debug Flags
 const debug = false;
@@ -141,23 +142,22 @@ async function init() {
     fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
 
     // Write the html data to a Text File
-    await writeToFile(`${fname}.html`, html); 
+    await writeToFile(TMP_HTML, html); 
 
     // Write the html data to a PDF
-    await writeToPdf(`${fname}.html`, `${fname}`);
-    // Then after the PDF was written.
-    // Everything completed successfully. Pack it up kids
+    await writeToPdf(TMP_HTML, `${fname}`);
+    
     console.log("Success");
   } catch (error) {
-    // Ruh roh - something went wrong
     console.log("CATCH-ERROR:", error.message);
     if (debug) {
       console.log(error);
     }
   } finally {
-    if (fname && !debug) {
+    // Delete the temporary HTML file if it exists
+    if (fs.existsSync(TMP_HTML) && !debug) {
       const unlinkAsync = util.promisify(fs.unlink);
-      await unlinkAsync(`${fname}.html`);
+      await unlinkAsync(TMP_HTML);
     }
   }
 }
