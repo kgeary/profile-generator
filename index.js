@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const puppeteer = require('puppeteer');
+const util = require('util');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
@@ -100,7 +101,7 @@ function parseResponse(rspUser, rspStar, userColor) {
 async function init() {
   let userColor; // Store the user color for use later
   let data = {}; // Store data parameters needed to fill in the html
-
+  let fname;
   try {
     // Prompt user with questions
     const response = await inquirer.prompt(questions);
@@ -137,7 +138,7 @@ async function init() {
     if (data.name === DEFAULT_NAME) {
       data.name = data.login;
     }
-    const fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
+    fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
 
     // Write the html data to a Text File
     await writeToFile(`${fname}.html`, html); 
@@ -152,6 +153,11 @@ async function init() {
     console.log("CATCH-ERROR:", error.message);
     if (debug) {
       console.log(error);
+    }
+  } finally {
+    if (fname && !debug) {
+      const unlinkAsync = util.promisify(fs.unlink);
+      await unlinkAsync(`${fname}.html`);
     }
   }
 }
