@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
-const pdf = require('html-pdf');
+const puppeteer = require('puppeteer');
 const fs = require('fs');
+const path = require('path');
 const axios = require('axios');
 const generator = require('./generateHTML.js');
 
@@ -39,18 +40,13 @@ function writeToFile(fileName, data) {
 }
 
 // Write HTML to a PDF
-function writeToPdf(fileName, html) {
-  let options = { format: 'Letter' };
-  return new Promise(function (resolve, reject) {
-    pdf.create(html, options).toFile(fileName, function (err, res) {
-      if (err) {
-        if (debug) { console.log(err); }
-        reject(err);
-      } else {
-        resolve(res);
-      }
-    });
-  });
+async function writeToPdf(inFile, outFile) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  const filePath = path.resolve(`${inFile}`);
+  await page.goto(`file:${filePath}`, {waitUntil: 'networkidle2'});
+  await page.pdf({path: `${outFile}.pdf`, format: 'A4'});
+  return browser.close();
 }
 
 // Format input data like we need it
@@ -144,12 +140,10 @@ async function init() {
     const fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
 
     // Write the html data to a Text File
-    if (debug) { 
-      await writeToFile(`${fname}.html`, html); 
-    }
+    await writeToFile(`${fname}.html`, html); 
 
     // Write the html data to a PDF
-    await writeToPdf(`${fname}.pdf`, html);
+    await writeToPdf(`${fname}.html`, `${fname}`);
     // Then after the PDF was written.
     // Everything completed successfully. Pack it up kids
     console.log("Success");

@@ -139,7 +139,8 @@ function generateHTML(data) {
         }
 
         .photo-header h1,
-        .photo-header h3 {
+        .photo-header h3,
+        .photo-header h5 {
             width: 100%;
             text-align: center;
         }
@@ -205,11 +206,6 @@ function generateHTML(data) {
             body {
                 zoom: .75;
             }
-            
-            .card {
-                display: inline-block;
-                width: 500px;
-            }
         }
     </style>
 </head>
@@ -218,7 +214,7 @@ function generateHTML(data) {
     <div class="wrapper">
         <div class="photo-header">
             <img src="${data.img}" alt="Avatar">
-            <h6>${data.login}</h6>
+            <h5>${data.login}</h5>
             <h1>Hi!</h1>
             <h1>My name is ${data.name}</h1>
             <h3>${data.bio}</h3>
