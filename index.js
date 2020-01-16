@@ -136,8 +136,7 @@ async function init() {
     if (debug) {
       console.log("User Api Response", rspUser);
       console.log("Star Api Response", rspStar);
-      console.log("data object");
-      console.table(data);
+      console.log("data object", data);
     }
 
     // Generate the HTML based off the newly acquired data
