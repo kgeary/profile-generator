@@ -101,74 +101,71 @@ function parseResponse(rspUser, rspStar, userColor) {
 }
 
 // Initialize and run the script
-function init() {
+async function init() {
   let userColor; // Store the user color for use later
   let data = {}; // Store data parameters needed to fill in the html
 
-  // Prompt user with questions
-  inquirer
-    .prompt(questions)
-    .then(function (response) {
-      // Then after User Input Responses received
-      userColor = response.color;
-      const name = response.name;
+  try {
+    // Prompt user with questions
+    const response = await inquirer.prompt(questions);
+    const name = response.name;
+    userColor = response.color;
 
-      // get API data returns array of promises
-      return Promise.all(
-        [
-          axios.get(`https://api.github.com/users/${name}`),
-          axios.get(`https://api.github.com/users/${name}/starred`),
-        ]);
-    })
-    .then(function (responses) {
-      // Then after All API Calls returned successfully
-      // Set the response objects to the 'data' field of the responses
-      const [rspUser, rspStar] = responses.map(x => x.data);
+    // get API data returns array of promises
+    const responses = await Promise.all(
+      [
+        axios.get(`https://api.github.com/users/${name}`),
+        axios.get(`https://api.github.com/users/${name}/starred`),
+      ]);
 
-      // Convert API response object into params object
-      if (debug) { console.log("User Api Response", rspUser); }
+    // Then after All API Calls returned successfully
+    // Set the response objects to the 'data' field of the responses
+    const [rspUser, rspStar] = responses.map(x => x.data);
 
-      // Save the user data to a variable
-      data = parseResponse(rspUser, rspStar, userColor);
+    // Convert API response object into params object
+    if (debug) { console.log("User Api Response", rspUser); }
 
-      if (debug) {
-        console.log("Star Api Response", rspStar);
-        console.log("data object");
-        console.table(data);
-      }
+    // Save the user data to a variable
+    data = parseResponse(rspUser, rspStar, userColor);
 
-      // Generate the HTML based off the newly acquired data
-      const html = generator.generateHTML(data);
+    if (debug) {
+      console.log("Star Api Response", rspStar);
+      console.log("data object");
+      console.table(data);
+    }
 
-      // Get the filename to use for the output (temp when debugging else user_name)
-      if (data.name === DEFAULT_NAME) {
-        data.name = data.login;
-      }
-      const fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
+    // Generate the HTML based off the newly acquired data
+    const html = generator.generateHTML(data);
 
-      // Write the html data to a Text File
-      if (debug) { writeToFile(`${fname}.html`, html); }
+    // Get the filename to use for the output (temp when debugging else user_name)
+    if (data.name === DEFAULT_NAME) {
+      data.name = data.login;
+    }
+    const fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
 
-      // Write the html data to a PDF
-      writeToPdf(`${fname}.pdf`, html);
-    }).then(function () {
-      // Then after the PDF was written.
-      // Everything completed successfully. Pack it up kids
-      console.log("Success");
-    })
-    .catch(function (error) {
-      // Ruh roh - something went wrong
-      console.log("CATCH-ERROR:", error.message);
-      if (debug) {
-        console.log(error);
-      }
-    });
+    // Write the html data to a Text File
+    if (debug) { 
+      await writeToFile(`${fname}.html`, html); 
+    }
+
+    // Write the html data to a PDF
+    await writeToPdf(`${fname}.pdf`, html);
+    // Then after the PDF was written.
+    // Everything completed successfully. Pack it up kids
+    console.log("Success");
+  } catch (error) {
+    // Ruh roh - something went wrong
+    console.log("CATCH-ERROR:", error.message);
+    if (debug) {
+      console.log(error);
+    }
+  }
 }
 
-// Alert the user we are in debug mode. Extra output expected
-if (debug) {
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  console.log("Debug Mode Active");
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-}
-init();
+  // Alert the user we are in debug mode. Extra output expected
+  if (debug) {
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.log("Debug Mode Active");
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  }
+  init();
