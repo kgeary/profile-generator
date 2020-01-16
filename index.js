@@ -8,7 +8,7 @@ const generator = require('./generateHTML.js');
 const TMP_HTML = '.tmp.html';
 
 // Debug Flags
-const debug = false;
+const debug = true;
 const tmpFiles = debug || false;
 const DEFAULT_NAME = "No Name Provided";
 
@@ -48,6 +48,15 @@ async function writeToPdf(inFile, outFile) {
   const filePath = path.resolve(`${inFile}`);
   await page.goto(`file:${filePath}`, {waitUntil: 'networkidle2'});
   await page.pdf({path: `${outFile}.pdf`, format: 'A4'});
+  // If debug - create a screenshot image
+  if (debug) {
+    await page.setViewport({
+      width: 1200,
+      height: 1550,
+      deviceScaleFactor: 1,
+    });
+    await page.screenshot({ path: "tmp.png" });
+  }
   return browser.close();
 }
 
