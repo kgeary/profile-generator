@@ -117,16 +117,15 @@ async function init() {
       ]);
 
     // Then after All API Calls returned successfully
-    // Set the response objects to the 'data' field of the responses
+    // Set the individual response objects to the 'data' field of the responses
     const [rspUser, rspStar] = responses.map(x => x.data);
-
-    // Convert API response object into params object
-    if (debug) { console.log("User Api Response", rspUser); }
 
     // Save the user data to a variable
     data = parseResponse(rspUser, rspStar, userColor);
 
+    // Debug - Print the responses and the data object
     if (debug) {
+      console.log("User Api Response", rspUser);
       console.log("Star Api Response", rspStar);
       console.log("data object");
       console.table(data);
@@ -135,7 +134,7 @@ async function init() {
     // Generate the HTML based off the newly acquired data
     const html = generator.generateHTML(data);
 
-    // Get the filename to use for the output (temp when debugging else user_name)
+    // Get the filename to use for the output pdf
     if (data.name === DEFAULT_NAME) {
       data.name = data.login;
     }

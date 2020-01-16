@@ -104,7 +104,7 @@ dist
 .tern-port
 
 # A temporary html file for testing
-temp.html
+.tmp.html
 
 # A temporary pdf file for testing
 temp.pdf
