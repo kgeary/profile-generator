@@ -108,3 +108,6 @@ temp.html
 
 # A temporary pdf file for testing
 temp.pdf
+
+# test PDFs
+[A-Z]*_[A-Z]*.pdf
