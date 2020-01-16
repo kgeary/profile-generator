@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const generator = require('./generateHTML.js');
-const TMP_HTML = 'tmp.html';
+const TMP_HTML = '.tmp.html';
 
 // Debug Flags
 const debug = false;
