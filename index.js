@@ -8,7 +8,7 @@ const generator = require('./generateHTML.js');
 const TMP_HTML = '.tmp.html';
 
 // Debug Flags
-const debug = true;
+const debug = false || (process.argv[2]==="debug");
 const tmpFiles = debug || false;
 const DEFAULT_NAME = "No Name Provided";
 
