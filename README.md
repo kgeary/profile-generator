@@ -37,7 +37,9 @@ node index.js debug
 * \# of People they are following
 * \# of Projects Starred
 
-<div id="screenshots"></div>
+## Animated Gif
+<a href="/screenshots/animated.gif">Animated GIF of the profile generator</a>
+<div id="screenshots"></div> 
 
 ## Output Examples
 <section style="display: flex; flex-wrap: wrap;">

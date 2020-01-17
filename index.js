@@ -119,22 +119,28 @@ async function init() {
     const name = userResponse.name;
     const userColor = userResponse.color;
 
-    // get API data returns array of promises
+    // get User API data
+    const urlUser = `https://api.github.com/users/${name}`;
+    // get the User Repositories (1st 100 results)
+    const urlRepos = `https://api.github.com/users/${name}/repos?page=1&per_page=100`;
+    // Wait for both requests to finish
     const responses = await Promise.all(
       [
-        axios.get(`https://api.github.com/users/${name}`),
-        axios.get(`https://api.github.com/users/${name}/repos?page=1&per_page=100`),
+        axios.get(urlUser),
+        axios.get(urlRepos),
       ]);
 
     // Then after All API Calls returned successfully
-    // Set the individual response objects to the 'data' field of the responses
-    const [resUser, resRepos] = responses.map(x => x.data);
+    // Set the individual response objects to the 'data' field of their response
+    const [resUser, resRepos] = responses.map(res => res.data);
 
     // Save the user data to a variable
     data = parseResponse(resUser, resRepos, userColor);
 
     // Determine how many pages we need and create requests for each of them
-    let pages = Math.ceil(data.publicRepos/100);
+    let pages = Math.ceil(data.publicRepos / 100);
+    
+    // For each remaining page we need to get add a new get request to the array
     let repoRequests = [];
     for (let i=2; i <= pages; i++) {
       const url = `https://api.github.com/users/${name}/repos?page=${i}&per_page=100`;
