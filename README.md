@@ -38,7 +38,9 @@ node index.js debug
 * \# of Projects Starred
 
 ## Animated Gif
-<a href="/screenshots/animated.gif">Animated GIF of the profile generator</a>
+<a href="/screenshots/animated.gif">
+  <img src="/screenshots/animated.gif" width="400px" height="300px">
+</a>
 <div id="screenshots"></div> 
 
 ## Output Examples
