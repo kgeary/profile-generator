@@ -79,9 +79,11 @@ function formatData(data) {
   if (!data.bio) {
     data.bio = "";
   }
-  // Set a default value for blog if null
+  // Set a default value for blog if null.
   if (!data.blog) {
     data.blog = "#";
+  } else if (!data.blog.includes("http")) { // Add https:// if http not found
+    data.blog = "https://" + data.blog;
   }
 }
 
@@ -141,7 +143,7 @@ async function init() {
     // Generate the HTML based off the newly acquired data
     const html = generator.generateHTML(data);
 
-    // Get the filename to use for the output pdf
+    // Get the filename to use for the output PDF
     if (data.name === DEFAULT_NAME) {
       data.name = data.login;
     }
@@ -153,13 +155,18 @@ async function init() {
     // Write the html data to a PDF
     await writeToPdf(TMP_HTML, `${fname}`);
 
+    // Print Final Success to Alert User
     console.log("Success");
-  } catch (error) {
 
+  } catch (error) {
+    // Handle Errors here
+
+    // Print the Error if debug mode active
     if (debug) {
       console.log(error);
     }
-    // Handle Error
+
+    // Handle Error - Print a message alerting the user what went wrong
     if (error.response.status === 404) {
       console.log("ERROR:", "User Not Found!");
     }
