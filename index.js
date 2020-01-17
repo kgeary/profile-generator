@@ -88,21 +88,21 @@ function formatData(data) {
 }
 
 // Parse the api reponse data into an object with just the data we need
-function parseResponse(rspUser, rspStar, userColor) {
+function parseResponse(resUser, resRepos, userColor) {
   const data = {
-    name: rspUser.name,
-    login: rspUser.login,
-    img: rspUser.avatar_url,
-    bio: rspUser.bio,
-    blog: rspUser.blog,
-    location: rspUser.location,
-    url: rspUser.html_url,
-    publicRepos: rspUser.public_repos,
-    followers: rspUser.followers,
-    following: rspUser.following,
+    name: resUser.name,
+    login: resUser.login,
+    img: resUser.avatar_url,
+    bio: resUser.bio,
+    blog: resUser.blog,
+    location: resUser.location,
+    url: resUser.html_url,
+    publicRepos: resUser.public_repos,
+    followers: resUser.followers,
+    following: resUser.following,
     color: userColor,
-    stars: rspStar.length,
-  };
+    stars: resRepos.reduce((acc, el) => acc + el.stargazers_count, 0),
+  }
 
   // Fix the data up before applying it to html
   formatData(data);
@@ -123,20 +123,41 @@ async function init() {
     const responses = await Promise.all(
       [
         axios.get(`https://api.github.com/users/${name}`),
-        axios.get(`https://api.github.com/users/${name}/starred`),
+        axios.get(`https://api.github.com/users/${name}/repos?page=1&per_page=100`),
       ]);
 
     // Then after All API Calls returned successfully
     // Set the individual response objects to the 'data' field of the responses
-    const [rspUser, rspStar] = responses.map(x => x.data);
+    const [resUser, resRepos] = responses.map(x => x.data);
 
     // Save the user data to a variable
-    data = parseResponse(rspUser, rspStar, userColor);
+    data = parseResponse(resUser, resRepos, userColor);
+
+    // Determine how many pages we need and create requests for each of them
+    let pages = Math.ceil(data.publicRepos/100);
+    let repoRequests = [];
+    for (let i=2; i <= pages; i++) {
+      const url = `https://api.github.com/users/${name}/repos?page=${i}&per_page=100`;
+      repoRequests.push(axios.get(url));
+    }
+    if (debug) { console.log("Total # of Repo Pages", pages); }
+
+    // Wait for all remaining pages to come in
+    let repoResponses = await Promise.all(repoRequests);
+    
+    // Add the stars from each page of responses
+    repoResponses.forEach(res => {
+      // Check each repositories stargazers_count. Use reduce to sum them all up
+      const stars = res.data.reduce((acc, el) => acc + el.stargazers_count, 0);
+      // Add the stars found on this page of repositories to the overall count
+      data.stars += stars;
+    });
 
     // Debug - Print the responses and the data object
     if (debug) {
-      console.log("User Api Response", rspUser);
-      console.log("Star Api Response", rspStar);
+      console.log("User Api Response", resUser);
+      console.log("Repo Api Response", resRepos);
+      console.log("Additional Pages", repoResponses);
       console.log("data object", data);
     }
 
@@ -147,6 +168,8 @@ async function init() {
     if (data.name === DEFAULT_NAME) {
       data.name = data.login;
     }
+
+    // Set the output filename. Replace whitespace in name if needed
     fname = tmpFiles ? 'temp' : `${data.name.replace(/\s/g, '_')}`;
 
     // Write the html data to a Text File
@@ -157,9 +180,7 @@ async function init() {
 
     // Print Final Success to Alert User
     console.log("Success");
-
-  } catch (error) {
-    // Handle Errors here
+  } catch (error) { // Handle Errors here
 
     // Print the Error if debug mode active
     if (debug) {
